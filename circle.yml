@@ -1,0 +1,15 @@
+machine:
+  services:
+    - docker
+dependencies:
+  cache_directories:
+    - "~/openapphack-docker-redis"
+  override:
+    - docker info
+    - if [[ -e ~/openapphack-docker-redis/image.tar ]]; then docker load --input ~/openapphack-docker-redis/image.tar; fi
+    - docker build -t openapphack/redis .
+    - mkdir -p ~/openapphack-docker-redis; docker save --output ~/openapphack-docker-redis/image.tar openapphack/redis
+test:
+  override:
+    - docker run -d --name=redis -v /run/redis openapphack/redis; sleep 10
+    - docker run --volumes-from=redis openapphack/redis redis-cli -s /var/run/redis/redis.sock PING
